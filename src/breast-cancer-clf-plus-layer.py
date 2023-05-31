@@ -123,6 +123,18 @@ classificador.fit(
     epochs=100
 )
 
+###Visualizando os pesos
+pesos0 = classificador.layers[0].get_weights()
+print("🐍 File: src/breast-cancer-clf-plus-layer.py | Line: 128 | undefined ~ pesos0 = classificador.layers[0].get_weights()",pesos0)
+print("🐍 File: src/breast-cancer-clf-plus-layer.py | Line: 128 | undefined ~ pesos0 = classificador.layers[0].get_weights()",len(pesos0))
+pesos1 = classificador.layers[1].get_weights()
+print("🐍 File: src/breast-cancer-clf-plus-layer.py | Line: 128 | undefined ~ pesos0 = classificador.layers[0].get_weights()",pesos1)
+print("🐍 File: src/breast-cancer-clf-plus-layer.py | Line: 128 | undefined ~ pesos0 = classificador.layers[0].get_weights()",len(pesos1))
+pesos2 = classificador.layers[2].get_weights()
+print("🐍 File: src/breast-cancer-clf-plus-layer.py | Line: 128 | undefined ~ pesos0 = classificador.layers[0].get_weights()",pesos2)
+print("🐍 File: src/breast-cancer-clf-plus-layer.py | Line: 128 | undefined ~ pesos0 = classificador.layers[0].get_weights()",len(pesos2))
+
+
 ## Para prever, temos que testar, para isso devemos passar a base de teste
 ## estou salvando o as previsoes para analisar junto a classe_teste.csv
 ## seguindo a função de ativação se o valor previsto for > 0.5, então é True se não é False
