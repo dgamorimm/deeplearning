@@ -43,7 +43,7 @@ classificador = Sequential()
 ## kernel_initializar = é como você vai inicializar o balancemaento dos pesos, por padrão , utilizamos o random uniform
 ## input_dim  = define quantas entradas você tem no seu modelo. Como vimos anteriormente temos 30. Define 30 neuronios na entrada
 
-### Camada de Entrada
+### Camada Oculta
 classificador.add(
     Dense(
         units=16,
@@ -63,4 +63,31 @@ classificador.add(
         units=1,
         activation='sigmoid'
     )
+)
+
+
+## optimizer: qual pe a função para fazer o ajuste dos pesos, entra na parte da descida do gradiente + descida do gradiente estocastico
+## é recomendado que começamos a utlizar o optimizer 'adam', é o que melhor se adpta na maioria dos casos
+## loss: é a nossa função de perda, a mneira que vai fazer o tratamento ou o calculo do erro
+## quanto menor o loss, melhor
+## como temos um problema de classificação binário, é recomendado que utilize o 'binary_crossentropy'
+## é recomendado usar o crossentropy , pois ele usa o logaritmo, ele vai de certa forma vai utilizar a perda através de uma regressão logistica
+## usamos a métrica de binary_accuracy, pois estamos com problema de classificação binária
+
+### Compilando nossa rede neural
+classificador.compile(
+    optimizer='adam',
+    loss='binary_crossentropy',
+    metrics= ['binary_accuracy']
+    )
+
+## fit: significa achar a correlação entre os valores de treinamento
+## batch_size : vai calcular o erro para 10 registros e depois ele vai atualizar os pesos
+## epochs : quantas vezes eu quero fazer os ajustes dos pesos
+### Treinando
+classificador.fit(
+    previsores_treinamento,
+    classe_treinamento,
+    batch_size=10,
+    epochs=100
 )
