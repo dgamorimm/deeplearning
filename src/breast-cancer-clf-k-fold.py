@@ -1,6 +1,6 @@
 from rich import print
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.optimizers import Adam
 from sklearn.model_selection import cross_val_score
@@ -33,6 +33,17 @@ def criarRede():
             input_dim = 30
         )
     )
+    
+    ## essa tecnica zera o valor de alguns neuronios através de um percentual definido, afim de mitigar o Overfitting
+    ## é usado depois das camdas que são implementadas
+    ## é bom adicionar para melhorar os resultados
+    
+    ### Tecnica de Dropout para mitigar Overfitting Camada Oculta 1
+    classificador.add(
+        Dropout(
+           0.2
+        )
+    )
 
     ### Camada Oculta 2
     classificador.add(
@@ -40,6 +51,13 @@ def criarRede():
             units=16,
             activation='relu',
             kernel_initializer= 'random_uniform'
+        )
+    )
+    
+    ### Tecnica de Dropout para mitigar Overfitting Camada Oculta 2
+    classificador.add(
+        Dropout(
+           0.2
         )
     )
 
