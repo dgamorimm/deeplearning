@@ -2,6 +2,7 @@ from rich import print
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Dense
+from sklearn.metrics import confusion_matrix, accuracy_score
 import pandas as pd
 import os
 
@@ -10,6 +11,16 @@ import os
 # Vamos utilizar camadas Dense(Densas) em uma rede neural. Siginifica que cada um dos neuronios é ligado na camada subsequente
 
 PATH_DATA = os.path.join(os.path.dirname(__file__),'data')
+
+def save_txt(predictions):
+    # Criar data frame
+    df = pd.DataFrame(predictions)
+    
+    # Formatando os valores sem notação científica
+    df_formatted = df.apply(lambda x: '{:.0f}'.format(x[0]), axis=1)
+    
+    # Salvando o DataFrame formatado em um arquivo de texto
+    df_formatted.to_csv(PATH_DATA + '\\classe_prevista.txt', index=False, header=False)
 
 # Lendo os dados dos previsores e das classes
 previsores = pd.read_csv(PATH_DATA + '\\entradas_breast.csv')
@@ -22,6 +33,9 @@ previsores_treinamento,\
 previsores_teste,\
 classe_treinamento,\
 classe_teste = train_test_split(previsores, classe, test_size=0.25)
+
+# salvando a classe teste para avaliar posteriormente com o dado previsto
+classe_teste.to_csv(PATH_DATA + '\\classe_teste.csv', index=True, header=False)
 
 print('\n')
 print("🐍 File: src/breast-cancer-clf.py | Line: 15 | undefined ~ previsores_treinamento",previsores_treinamento.shape)
@@ -91,3 +105,24 @@ classificador.fit(
     batch_size=10,
     epochs=100
 )
+
+## Para prever, temos que testar, para isso devemos passar a base de teste
+## estou salvando o as previsoes para analisar junto a classe_teste.csv
+## seguindo a função de ativação se o valor previsto for > 0.5, então é True se não é False
+### Realizando as previsões
+previsoes = classificador.predict(
+    previsores_teste
+)
+previsoes = (previsoes > 0.5)
+save_txt(previsoes)
+
+## precisão: indica o percentual de acerto
+## matriz de confusão :[[40  9][ 3 91]] , ou seja os que deram 0 eu acertei 40 e errei 9, o que deu 1 eu acertei 91 e errei 3.
+## resultado: é o valor da perda, com o a precisão
+### Analisando a acurácia
+precisao = accuracy_score(classe_teste, previsoes)
+print("🐍 File: src/breast-cancer-clf.py | Line: 123 | undefined ~ precisao",precisao)
+matriz = confusion_matrix(classe_teste, previsoes)
+print("🐍 File: src/breast-cancer-clf.py | Line: 125 | undefined ~ matriz",matriz)
+resultado = classificador.evaluate(previsores_teste, classe_teste)
+print("🐍 File: src/breast-cancer-clf.py | Line: 127 | undefined ~ resultado",resultado)
