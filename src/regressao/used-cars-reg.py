@@ -19,13 +19,20 @@ def drop_columns(columns : list):
     return base
 
 def column_value_view(column : str):
-    print(base[column].value_counts())
+    return base[column].value_counts()
 
-def shape_view(dataframe):
+def shape_view(title : str, dataframe):
     shape = dataframe.shape
     records = shape[0]
     columns = shape[1]
-    print(f'Registros: {records} || Colunas: {columns}')
+    print(f'Titulo: {title} || Registros: {records} || Colunas: {columns}')
+
+def column_null_view(column : str):
+    shape_view(f'Coluna Nula - {column}',base.loc[pd.isnull(base[column])])
+
+def fill_na_more_appears(column : str):
+    more_appears = column_value_view(column).head(1).index[0]
+    base.fillna(value={column : more_appears}, inplace=True)
 
 base = drop_columns(['dateCrawled', 'dateCreated', 'nrOfPictures', 
                      'postalCode', 'lastSeen', 'name', 'seller', 'offerType'])
@@ -33,17 +40,32 @@ base = drop_columns(['dateCrawled', 'dateCreated', 'nrOfPictures',
 ### vimos que há preços de carros com valor 10 e até 0
 ### isso atrabalha a base
 inconsistencia1 = base.loc[base.price <= 10]
-shape_view(inconsistencia1)
+shape_view('Inconsistencia 1', inconsistencia1)
 ### Essa é a correção
-shape_view(base)
+shape_view('Base Antes I1', base)
 base = base[base.price > 10]
-shape_view(base)
+shape_view('Base Depois I1', base)
 
 ### vimos que há preços de carros com valor muito elevado, o que não condiz com a realidade
 ### isso atrabalha a base
 inconsistencia2 = base.loc[base.price > 350000]
-shape_view(inconsistencia2)
+shape_view('Inconsistencia 2', inconsistencia2)
 ### Essa é a correção
-shape_view(base)
+shape_view('Base Antes I2',base)
 base = base[base.price < 350000]
-shape_view(base)
+shape_view('Base Depois I2',base)
+
+# essa outra inconsitencia mostra que temos dados ainda não preenchidos
+# porém ela é de suma importancia pois da caracteristicas do carro
+# aqui conseguimos ver a quantidade de valores nulos por coluna
+colunas = [
+    'vehicleType', 'gearbox', 'model', 'fuelType', 'notRepairedDamage'
+]
+for coluna in colunas:
+    column_null_view(coluna)
+# para corrigir essa inconsistencia, vamos subistituir os valores
+# com que mais aparece na base
+print('-------tratando a inconsistencia 3---------')
+for coluna in colunas:
+    fill_na_more_appears(coluna)
+    column_null_view(coluna)
