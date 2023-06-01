@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 from rich import print
+from keras.models import Sequential
+from keras.layers import Dense
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 
@@ -108,3 +110,57 @@ onehotencoder = ColumnTransformer(
 )
 previsores = onehotencoder.fit_transform(previsores).toarray()
 print(len(previsores[0]))
+
+# Criando a rede neural
+regressor  = Sequential()
+
+# para problemas de regressão é recomendado utilizar a função de ativação relu
+# units = 316 colunas da base de previsores + 1 que uma unica saida, divido por 2 = 158.5 areddondando 159
+# criando a primeira camada oculta
+regressor.add(
+    Dense(
+        units=158,
+        activation='relu',
+        input_dim = 316
+    )
+)
+
+# criando a segunda camada oculta
+regressor.add(
+    Dense(
+        units=158,
+        activation='relu'
+    )
+)
+
+# criando camada de saida
+regressor.add(
+    Dense(
+        units=1,
+        activation='linear'
+    )
+)
+
+# quanto menor o mean_absolute_error melhor
+# eu tiver um mean_absolute_error de 2000 o meu preço pode varir 2000 para cima ou para baixo
+# compilando nosso regressor
+regressor.compile(
+    loss='mean_absolute_error',
+    optimizer='adam',
+    metrics=['mean_absolute_error']
+)
+
+# treinando o modelo
+regressor.fit(
+    previsores,
+    preco_real,
+    batch_size=300,
+    epochs=100
+)
+
+# realizando as previsoes
+previsoes = regressor.predict(previsores)
+
+# analisando a média prevista com a média real
+print('Preço Real: ', preco_real.mean())
+print('Preço Previsão: ', previsoes.mean())
