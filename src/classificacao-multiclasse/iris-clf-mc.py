@@ -1,6 +1,8 @@
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Dense
+from sklearn.preprocessing import LabelEncoder
+from keras.utils import np_utils
 import pandas as pd
 import os
 
@@ -14,11 +16,22 @@ base = pd.read_csv(PATH_DATA + '\\iris.csv')
 previsores = base.iloc[:, 0:4].values
 classe = base.iloc[:, 4].values
 
+# como a minha classe é do nivel categórico, tremos que transformar em numeros
+# essa etapa de preprocessamento tem que ser realizada para problemas assim
+le = LabelEncoder()
+classe = le.fit_transform(classe)
+
+# agora a representação para cada classe fica
+# iris setosa     = 1 0 0
+# iris virginica  = 0 1 0
+# iris versicolor = 0 0 1
+classe_dummy = np_utils.to_categorical(classe)
+
 # criação das bases de dados
 previsores_treinamento,\
 previsores_teste,\
 classe_treinamento,\
-classe_teste = train_test_split(previsores, classe, test_size=0.25)
+classe_teste = train_test_split(previsores, classe_dummy, test_size=0.25)
 
 # estrutura da rede neural
 classificador = Sequential()
