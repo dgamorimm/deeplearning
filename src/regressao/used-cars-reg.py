@@ -21,5 +21,29 @@ def drop_columns(columns : list):
 def column_value_view(column : str):
     print(base[column].value_counts())
 
+def shape_view(dataframe):
+    shape = dataframe.shape
+    records = shape[0]
+    columns = shape[1]
+    print(f'Registros: {records} || Colunas: {columns}')
+
 base = drop_columns(['dateCrawled', 'dateCreated', 'nrOfPictures', 
                      'postalCode', 'lastSeen', 'name', 'seller', 'offerType'])
+
+### vimos que há preços de carros com valor 10 e até 0
+### isso atrabalha a base
+inconsistencia1 = base.loc[base.price <= 10]
+shape_view(inconsistencia1)
+### Essa é a correção
+shape_view(base)
+base = base[base.price > 10]
+shape_view(base)
+
+### vimos que há preços de carros com valor muito elevado, o que não condiz com a realidade
+### isso atrabalha a base
+inconsistencia2 = base.loc[base.price > 350000]
+shape_view(inconsistencia2)
+### Essa é a correção
+shape_view(base)
+base = base[base.price < 350000]
+shape_view(base)
