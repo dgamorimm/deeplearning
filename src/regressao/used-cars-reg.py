@@ -1,7 +1,8 @@
 import os
 import pandas as pd
 from rich import print
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.compose import ColumnTransformer
 
 PATH_DATA = os.path.join(os.path.dirname(__file__),'data')
 
@@ -77,10 +78,33 @@ previsores = base.iloc[:, 1:13].values
 preco_real = base.iloc[:, 0].values
 
 # transformando dados categoricos em valores numericos
+print(previsores[0:5])  # antes
 le = LabelEncoder()
 
-colunas = [0, 1, 3, 5, 8, 9, 10]
-for idx in colunas:
+colunas_categoricas = [0, 1, 3, 5, 8, 9, 10]
+for idx in colunas_categoricas:
     previsores[:, idx] = le.fit_transform(previsores[:, idx])
 
-print(previsores[0])
+print(previsores[0:5])  # depois
+
+
+# agora temos que colocar esses dados categoricos em matrizes
+# exemplo , se eu tenho uma coluna que informe o tipo de combustivel
+# nessa coluna depois do label encoder, ela foi transformada em numeros 1,2,3
+# o modelo preceisa enteder esses numero em matrizer da seguite forma
+"""
+1 - 1 0 0
+2 - 0 1 0
+3 - 0 0 1
+"""
+# vamos utiolizar o OneHotEncoder para fazer isso
+# você usa esse tipo de transformação, quando o seu dado categorico não tem ordem de importancia
+# exemplo, tenho carro do cambio tipo manual ou automatico, nenhum é maior ou melhor que o outro, há preferencias, ambos funcionam
+onehotencoder = ColumnTransformer(
+    transformers=[
+        ("OneHot", OneHotEncoder(), colunas_categoricas)
+        ],
+    remainder='passthrough'
+)
+previsores = onehotencoder.fit_transform(previsores).toarray()
+print(len(previsores[0]))
