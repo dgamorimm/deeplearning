@@ -1,10 +1,13 @@
+from rich import print
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
 from keras.models import Sequential
 from keras.layers import Dense
 from sklearn.preprocessing import LabelEncoder
 from keras.utils import np_utils
 import pandas as pd
 import os
+import numpy as np
 
 PATH_DATA = os.path.join(os.path.dirname(__file__),'data')
 
@@ -80,3 +83,22 @@ classificador.fit(
     batch_size=10,
     epochs=1000
 )
+
+# avaliando o modelo
+resultado = classificador.evaluate(previsores_teste, classe_teste)
+print("🐍 File: classificacao-multiclasse/iris-clf-mc.py | Line: 88 | undefined ~ resultado\n",resultado)
+
+
+# realizando previsoes
+previsoes = classificador.predict(previsores_teste)
+previsoes = (previsoes > 0.5)
+print("\n🐍 File: classificacao-multiclasse/iris-clf-mc.py | Line: 94 | undefined ~ previsoes\n",previsoes)
+
+# temos que fazer essa transformação pegando somente o indice, para gerar a matrix de confusão
+# se não pode dar erro de dimensionamento
+
+## gerando a matriz de confusão para analisar os acertos e erros
+classe_teste_matrix = [np.argmax(x) for x in classe_teste]
+previsoes_matrix = [np.argmax(x) for x in previsoes]
+matriz = confusion_matrix(previsoes_matrix, classe_teste_matrix)
+print("\n🐍 File: classificacao-multiclasse/iris-clf-mc.py | Line: 100 | undefined ~ matriz\n",matriz)
