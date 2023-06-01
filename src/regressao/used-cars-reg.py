@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from rich import print
+from sklearn.preprocessing import LabelEncoder
 
 PATH_DATA = os.path.join(os.path.dirname(__file__),'data')
 
@@ -69,3 +70,17 @@ print('-------tratando a inconsistencia 3---------')
 for coluna in colunas:
     fill_na_more_appears(coluna)
     column_null_view(coluna)
+    
+
+# Separando a base
+previsores = base.iloc[:, 1:13].values
+preco_real = base.iloc[:, 0].values
+
+# transformando dados categoricos em valores numericos
+le = LabelEncoder()
+
+colunas = [0, 1, 3, 5, 8, 9, 10]
+for idx in colunas:
+    previsores[:, idx] = le.fit_transform(previsores[:, idx])
+
+print(previsores[0])
