@@ -28,7 +28,8 @@ def shape_view(title : str, dataframe):
     print(f'Titulo: {title} || Registros: {records} || Colunas: {columns}')
 
 ## removendo colunas desnecessárias
-colunas = ['Other_Sales', 'Global_Sales', 'Developer', 'Name']
+colunas = ['Other_Sales', 'Developer', 'Name',
+           'NA_Sales', 'EU_Sales', 'JP_Sales']
 base = drop_columns(colunas)
 shape_view('Removendo colunas', base)
 
@@ -39,16 +40,12 @@ drop_lines_na()
 shape_view('Removendo linhas NaN', base)
 
 ## removendo outras inconsistencias com relação as vendas nos paises
-base = base.loc[base['NA_Sales'] > 1]
-base = base.loc[base['EU_Sales'] > 1]
+base = base.loc[base['Global_Sales'] > 1]
 shape_view('Removendo vendas menores que 1', base)
 
 # sparando a base entre previsores e classes
-previsores = base.iloc[:, [0, 1, 2, 3, 7, 8 , 9, 10, 11]].values
-
-venda_na = base.iloc[:, 4].values
-venda_eu = base.iloc[:, 5].values
-venda_jp = base.iloc[:, 6].values
+previsores = base.iloc[:, [0,1,2,3,5,6,7,8,9]].values
+valor_vendas = base.iloc[:, 4].values
 
 # transformar atributos categoricos para numeros
 print(previsores[0])
@@ -68,42 +65,44 @@ onehotencoder = ColumnTransformer(
 previsores = onehotencoder.fit_transform(previsores).toarray()
 print(len(previsores[0]))
 
-# 61 colunas após o preprocessamento
+# A camada de entrada possui 99 neurônios na entrada, pois equivale a
+# quantidade de atributos previsores após o pré-processamento
+# A quantidade 50 é relativo a fórumula: (entradas (99) + saída (1)) / 2
+# Definida somente uma camada de entrada pois estamos trabalhando somente com o valor total
 ## estrutura da rede neural
+ativacao = Activation(activation = 'selu')
+
 camada_entrada = Input(
-    shape=61,
+    shape=99,
 )
 
 # 61 + numeros de saidas 3 / 2 = 32
 camada_oculta1 = Dense(
-    units=32,
-    activation='sigmoid'
+    units=50,
+    activation=ativacao
 )(camada_entrada)
-
-camada_oculta2 = Dense(
-    units=32,
-    activation='sigmoid'
+camada_oculta1 = Dropout(
+    0.005
 )(camada_oculta1)
 
-camada_saida1 = Dense(
-    units=1,
-    activation='linear'
+camada_oculta2 = Dense(
+    units=50,
+    activation=ativacao
+)(camada_oculta1)
+camada_oculta2 = Dropout(
+    0.002
 )(camada_oculta2)
 
-camada_saida2 = Dense(
-    units=1,
-    activation='linear'
-)(camada_oculta2)
 
-camada_saida3 = Dense(
+camada_saida = Dense(
     units=1,
     activation='linear'
 )(camada_oculta2)
 
 
 regressor = Model(
-    inputs = camada_entrada,
-    outputs = [camada_saida1, camada_saida2, camada_saida3]
+    inputs = camada_entrada, 
+    outputs=[camada_saida]
 )
 
 # mse : mean squared error
@@ -114,10 +113,13 @@ regressor.compile(
 
 regressor.fit(
     previsores,
-    [venda_na, venda_eu, venda_jp],
-    epochs=5000,
-    batch_size=100
+    valor_vendas,
+    epochs=4800,
+    batch_size=50
 )
 
 # realizando as previsões para ver se ele acertou
-previsao_na, previsao_eu, previsao_jp = regressor.predict(previsores)
+previsoes = regressor.predict(previsores)
+
+print(previsoes[:5])
+print(valor_vendas[:5])
