@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from keras.datasets import mnist
 from keras.models import Sequential
-from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
+from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Dropout
 from keras.utils import np_utils
 from rich import print
 
@@ -131,6 +131,10 @@ classificador.add(
     )
 )
 
+# ele tem a mesma ideia que fizemos de normalização para a camada de entrada = previsores_teste /= 255
+# só que aqui vamos aplicar para as demais camadas
+classificador.add(BatchNormalization())
+
 # pool_size (2,2) significa que você vai mover 2 pixels para direita e 2 pixels para baixo
 # etapa de pooling
 pool_size = (2,2)
@@ -140,16 +144,59 @@ classificador.add(
     )
 )
 
+# quando temos mais de uma camada, usamos o flatten apenas uma unica vez
 # etapa flattening
+# classificador.add(Flatten())
+
+
+
+
+# adicionando a segunda camada de convolução
+classificador.add(
+    Conv2D(
+        filters=64,
+        kernel_size=kernel_size,
+        activation='relu'
+    )
+)
+classificador.add(BatchNormalization())
+# polling 2
+pool_size = (2,2)
+classificador.add(
+    MaxPooling2D(
+        pool_size=pool_size # tamanho da minha matriz/janela que vai capturar dentro da matriz de carcteristicas o meu maior valor
+    )
+)
+# flatten 2
 classificador.add(Flatten())
 
 # não é muito comum usar formula de units aqui
 # geralmente usam 128, 512 e etc
-# gerar a rede neural densa
+# gerar a rede neural densa 1
 classificador.add(
     Dense(
         units=calculate_neurons(784, kernel_size, pool_size),
         activation='relu'
+    )
+)
+
+classificador.add(
+    Dropout(
+        0.2
+    )
+)
+
+# gerar a rede neural densa 2
+classificador.add(
+    Dense(
+        units=calculate_neurons(784, kernel_size, pool_size),
+        activation='relu'
+    )
+)
+
+classificador.add(
+    Dropout(
+        0.2
     )
 )
 
