@@ -35,6 +35,14 @@ def shape_view(title : str, dataframe):
 def image_view():
     plt.axis('off')
     plt.show()
+    
+
+def calculate_neurons(total_pixels: int, 
+                      kernel_size : tuple,
+                      pooling_size : tuple):
+    mp_charac = (total_pixels - kernel_size[0] + 1)
+    qty = ((mp_charac // pooling_size[0]) ** 2) // 1000
+    return qty
 
 # imprtando, lendo e separando os conjuntos de dados
 (X_treinamento, y_treinamento),\
@@ -105,3 +113,73 @@ previsores_teste /= 255
 # os numeros vão de 0 - 9, portanto tem 10 posições
 classe_treinamento = np_utils.to_categorical(y_treinamento, 10)
 classe_teste = np_utils.to_categorical(y_teste, 10)
+
+# Criando a estrutura da rede neural
+classificador = Sequential()
+
+# o ideal é começar sempre com 64 kernels
+# se for aumentar é bom seguir seus multiplos
+# strides : é o parametro que você configura para setar como que a sua janela se move dentro do seu mapar de caracteristicas
+# strides (1,1) significa que você vai mover um pixel para direita e um pixel para baixo
+kernel_size = (3,3)
+classificador.add(
+    Conv2D(
+        filters=64, # mapas de caracteristicas(altera os valores dos kernels)
+        kernel_size=kernel_size, # tamanho do meu detector de caracterisicas. Se tiver uma imagem maior, isso aqui tem que aumentar
+        input_shape=(28,28,1), # largura, comprimento, canal
+        activation='relu' # função de ativação
+    )
+)
+
+# pool_size (2,2) significa que você vai mover 2 pixels para direita e 2 pixels para baixo
+# etapa de pooling
+pool_size = (2,2)
+classificador.add(
+    MaxPooling2D(
+        pool_size=pool_size # tamanho da minha matriz/janela que vai capturar dentro da matriz de carcteristicas o meu maior valor
+    )
+)
+
+# etapa flattening
+classificador.add(Flatten())
+
+# não é muito comum usar formula de units aqui
+# geralmente usam 128, 512 e etc
+# gerar a rede neural densa
+classificador.add(
+    Dense(
+        units=calculate_neurons(784, kernel_size, pool_size),
+        activation='relu'
+    )
+)
+
+# 10 saidas com numeros de 0 a 9
+# utiliza o softmax pois tem mais de um classe
+# camada de saída
+classificador.add(
+    Dense(
+        units=10,
+        activation='softmax'
+    )
+)
+
+# compilando e avaliando o nosso modelo
+classificador.compile(
+    loss='categorical_crossentropy',
+    optimizer='adam',
+    metrics=['accuracy']
+)
+
+# validation_data: para cada época que ele realizou o trenimaneto ele ja vai mostrando os resultados
+# loss = mostra a perda na base de dados de treinamento
+# accuracy = mostra o acerto na base de dados de treinamento
+# val_loss = mostra a perda na base de dados de teste
+# val_accuracy = mostra o acerto na base de dados de teste
+# treinando o modelo
+classificador.fit(
+    previsores_treinamento,
+    classe_treinamento,
+    batch_size=128,
+    epochs = 5,
+    validation_data=(previsores_teste, classe_teste)
+)
