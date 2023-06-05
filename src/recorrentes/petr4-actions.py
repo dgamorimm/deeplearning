@@ -1,5 +1,5 @@
 from keras.models import Sequential
-from keras.layers import Dense, Dropout
+from keras.layers import Dense, Dropout, LSTM
 from sklearn.preprocessing import MinMaxScaler
 from rich import print
 import numpy as np
@@ -69,3 +69,116 @@ normalizador = MinMaxScaler(
 )
 base_treinamento_normalizada = normalizador.fit_transform(base_treinamento)
 print('Normalizado\n',base_treinamento_normalizada[:5])
+
+## armazenado 90 valores anteriores e o preço real
+previsores = []
+preco_real = []
+
+for i in range(90, base.shape[0]):
+    previsores.append(base_treinamento_normalizada[i-90:i, 0])
+    preco_real.append(base_treinamento_normalizada[i, 0])
+
+## adicionando a um array do numpy, pois o keras só entende assim
+previsores, preco_real = np.array(previsores), np.array(preco_real)
+    
+print('Previsores (90 dias anteriores):\n',previsores[:5])
+print('Preco real:\n',preco_real[:5])
+
+## adicionando as dimensões necessárias
+### batch_size = quantidade de registros
+### timesteps = a quantidade de tempo necessária
+### input_dim = quantos atributos previsores vamos passar
+previsores = np.reshape(
+    previsores,
+    (
+        previsores.shape[0],  # quantiodade de registros
+        previsores.shape[1],  # quantidade de tempo
+        1  #trabalhamos com apenas um idicador, nesse caso estamos trabalhando somente com a coluna "Open"
+    )  
+)
+print('Previsores Reshape:\n',previsores[:5])
+
+# criando a estrutura da rede neural
+regressor = Sequential()
+
+## units = tem que ser um valor alto. aqui define a quantidade de células de memória
+## return_sequences = True define que a sua camada vai passar informação para outra camada LSTM, vai jogar a informação para frente e para outras camadas subsequentes
+## o numero 1 indica que só temos um atributo previsor que é a coluna selecionada "Open"
+## para essa rede neural é interessante colocar mais camadas, pois poucas camadas o resultado não é interessante
+
+# criando a primeira camada com células de memória
+regressor.add(
+    LSTM(
+        units=100,
+        return_sequences= True,
+        input_shape = (previsores.shape[1], 1)
+    )
+)
+regressor.add(
+    Dropout(
+        0.3
+    )
+)
+
+# criando a segunda camada com células de memória
+regressor.add(
+    LSTM(
+        units=50,
+        return_sequences= True
+    )
+)
+regressor.add(
+    Dropout(
+        0.3
+    )
+)
+
+# criando a terceira camada com células de memória
+regressor.add(
+    LSTM(
+        units=50,
+        return_sequences= True
+    )
+)
+regressor.add(
+    Dropout(
+        0.3
+    )
+)
+
+# criando a quarta camada com células de memória
+regressor.add(
+    LSTM(
+        units=50
+    )
+)
+regressor.add(
+    Dropout(
+        0.3
+    )
+)
+
+# criando a camada de saída (testar com a funçaõ sigmoid)
+regressor.add(
+    Dense(
+        units=1,
+        activation='linear'
+    )
+)
+
+## é recomendado o rmsprop, mas o adam também da bons resultados
+# otimizando a descida do gradiente
+regressor.compile(
+    optimizer='rmsprop',
+    loss='mean_squared_error',
+    metrics=['mean_absolute_error']
+)
+
+## recomendado rodar 100 ou mais épocas para este tipo de algoritmo
+# treinando o modelo
+regressor.fit(
+    previsores,
+    preco_real,
+    epochs=100,
+    batch_size=32
+)
