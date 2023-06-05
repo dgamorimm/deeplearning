@@ -182,3 +182,38 @@ regressor.fit(
     epochs=100,
     batch_size=32
 )
+
+# Realizar a previsao
+base_teste = pd.read_csv(PATH_DATA + '\\petr4_teste.csv')
+preco_real_teste = base_teste.iloc[:, 1:2]
+
+## pegar os 90 preços anteriores
+### tem que concatenar com a base inicial para pegar os valores anterios
+base_completa = pd.concat([base['Open'], base_teste['Open']], axis=0)
+
+entradas = base_completa[len(base_completa) - len(base_teste) - 90:].values
+entradas = entradas.reshape(-1, 1)
+entradas = normalizador.transform(entradas)
+
+X_teste = []
+for  i in range(90, len(entradas)):
+    X_teste.append(entradas[i-90:i,0])
+X_teste = np.array(X_teste)
+X_teste = np.reshape(
+    X_teste,
+    (
+        X_teste.shape[0],
+        X_teste.shape[1],
+        1
+    )
+)
+
+# realizando a previsão
+previsoes = regressor.predict(X_teste)
+
+# olhar de uma forma melhor desnormalizando o dado
+previsoes = normalizador.inverse_transform(previsoes)
+
+
+print('Previsao: ', previsoes.mean())
+print('Preço Real: ', preco_real_teste.mean())
