@@ -6,7 +6,9 @@ from keras.layers import (BatchNormalization,
                           Conv2D, 
                           MaxPooling2D)
 from keras.preprocessing.image import ImageDataGenerator
+from keras.utils import load_img, img_to_array
 import os
+import numpy as np
 
 PATH_IMAGES = os.path.join(os.path.dirname(__file__),'images')
 PATH_TEST = os.path.join(PATH_IMAGES, 'test_set')
@@ -124,10 +126,41 @@ base_teste = gerador_teste.flow_from_directory(
 
 # treinando o modelo
 # se você tiver um alto indice de capacidade de processamento, o ideal não é dividir pelo batch size
-classificador.fit_generator(
+classificador.fit(
     base_treinamento,
     steps_per_epoch= 4000 / 32,
     epochs=5,
     validation_data=base_teste,
     validation_steps= 1000 / 32
 )
+
+# realizando a previsão de uma imagem
+
+# carregando a imagem no formato keras
+imagem_teste = load_img(
+    os.path.join(PATH_TEST, 'gato', 'cat.3500.jpg'),
+    target_size = (64,64)
+)
+
+# passando as caracteristicas dos pixels da imagem para um array
+imagem_teste = img_to_array(imagem_teste)
+
+# aplicando a normalização
+imagem_teste /= 255
+
+# apliando as dimensões
+# cria uma coluna com uma unica dimensão/registro, pois queremos prever uma unica imagem
+imagem_teste = np.expand_dims(imagem_teste, axis=0)
+
+#realizando a previsao
+previsao = classificador.predict(imagem_teste)
+print(previsao)
+previsao = (previsao > 0.5)
+if previsao[0][0] == True:
+    print('É um gato')
+else:
+    print('É um cachorro')
+# quanto mais o valor se aproxima do 1, o resultado será para a classe 1 .
+# quanto mais o valor se aproxima do 0, o resultado será para a classe 0 .
+# para verificar qual é os indices das classes,  imprima
+print(base_treinamento.class_indices)
