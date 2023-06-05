@@ -12,12 +12,6 @@ PATH_IMAGES = os.path.join(os.path.dirname(__file__),'images')
 PATH_TEST = os.path.join(PATH_IMAGES, 'test_set')
 PATH_TRAINING = os.path.join(PATH_IMAGES, 'training_set')
 
-PATH_TEST_DOG = os.path.join(PATH_TEST, 'cachorro')
-PATH_TEST_CAT = os.path.join(PATH_TEST, 'gato')
-
-PATH_TRAINING_DOG = os.path.join(PATH_TRAINING, 'cachorro')
-PATH_TRAINING_CAT = os.path.join(PATH_TRAINING, 'gato')
-
 # Estrutura da rede neural
 
 classificador = Sequential()
@@ -99,4 +93,41 @@ classificador.compile(
     optimizer='adam',
     loss='binary_crossentropy',
     metrics=['accuracy']
+)
+
+# realizando o processo de augumentation
+gerador_treinamento = ImageDataGenerator(
+    rescale=1./255,  # realiza a normalização de escala das imagens
+    rotation_range= 7,
+    horizontal_flip= True,
+    shear_range= 0.2,
+    height_shift_range= 0.07,
+    zoom_range= 0.2
+)
+
+gerador_teste = ImageDataGenerator(rescale=1./255)
+
+# criando as novas bases de treinamento e teste
+base_treinamento = gerador_treinamento.flow_from_directory(
+    PATH_TRAINING,
+    target_size = (64, 64),
+    batch_size=32,
+    class_mode='binary'
+)
+
+base_teste = gerador_teste.flow_from_directory(
+    PATH_TEST,
+    target_size = (64, 64),
+    batch_size=32,
+    class_mode='binary'
+)
+
+# treinando o modelo
+# se você tiver um alto indice de capacidade de processamento, o ideal não é dividir pelo batch size
+classificador.fit_generator(
+    base_treinamento,
+    steps_per_epoch= 4000 / 32,
+    epochs=5,
+    validation_data=base_teste,
+    validation_steps= 1000 / 32
 )
