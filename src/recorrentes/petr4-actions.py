@@ -5,6 +5,7 @@ from rich import print
 import numpy as np
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
 
 # lendo os dados
 PATH_DATA = os.path.join(os.path.dirname(__file__),'data')
@@ -52,6 +53,10 @@ def column_value_view(column : str):
 def drop_lines_na():
     # axis = 0 ele apaga a linha 
     base.dropna(axis=0, inplace=True)
+
+def graphic_view():
+    plt.axis('off')
+    plt.show()
 
 # pré processamento
 shape_view('Inicio Base', base)
@@ -214,6 +219,15 @@ previsoes = regressor.predict(X_teste)
 # olhar de uma forma melhor desnormalizando o dado
 previsoes = normalizador.inverse_transform(previsoes)
 
-
+# Avaliando a média entre elas
 print('Previsao: ', previsoes.mean())
 print('Preço Real: ', preco_real_teste.mean())
+
+# olhando no gráfico
+plt.plot(preco_real_teste, color = 'red', label='Preço Real')
+plt.plot(previsoes, color = 'blue', label='Previsões')
+plt.title('Previsão preço das ações')
+plt.xlabel('Tempo')
+plt.ylabel('Valor Yahoo')
+plt.legend()
+graphic_view()
