@@ -70,3 +70,19 @@ for i, comp in enumerate(rbm.components_):
     plt.xticks(())
     plt.yticks(())
 image_view()
+
+# realizado as previsões
+previsoes_rbm = classificador_rbm.predict(previsores_teste)
+
+# verificando as métricas do modelo
+precisao_rbm = metrics.accuracy_score(previsoes_rbm, classe_teste)
+# 0.8805555555555555
+
+# vamos ver a acurácia sem o RBM
+naive_simples = GaussianNB()
+naive_simples.fit(previsores_treinamento, classe_treinamento)
+previsoes_naive = naive_simples.predict(previsores_teste)
+precisao_naive = metrics.accuracy_score(previsoes_naive, classe_teste)
+# 0.8111111111111111
+
+# Indica que o RBM ajuda na redução de dimensionalidade
