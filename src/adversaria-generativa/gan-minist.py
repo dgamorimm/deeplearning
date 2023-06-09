@@ -5,7 +5,6 @@ from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 from keras.layers.core.embedding import Embedding
-import keras_adversarial
 import matplotlib.pyplot as plt
 import numpy as np
 
